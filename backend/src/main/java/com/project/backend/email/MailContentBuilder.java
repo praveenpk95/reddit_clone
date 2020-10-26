@@ -14,6 +14,6 @@ public class MailContentBuilder {
     String build(String message) {
         Context context = new Context();
         context.setVariable("message", message);
-        return templateEngine.process("MailTemplate.html", context);
+        return templateEngine.process("MailTemplate", context);
     }
 }

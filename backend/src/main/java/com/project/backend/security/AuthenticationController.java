@@ -12,14 +12,15 @@ public class AuthenticationController {
 
     private final AuthenticationService authService;
 
-    @GetMapping("/here")
-    public String method_new() {
-        return "Hello there";
-    }
-
     @PostMapping("/signup")
     public ResponseEntity<String> signUp(@RequestBody AuthenticationRequest authRequest) {
         authService.signUp(authRequest);
         return new ResponseEntity<>("User Registration Successful", HttpStatus.OK);
+    }
+
+    @GetMapping("/accountVerification{token}")
+    public ResponseEntity<String> verifyAccount(@PathVariable String token) {
+        authService.verifyAccountToken(token);
+        return new ResponseEntity<>("Account verification Successful", HttpStatus.OK);
     }
 }

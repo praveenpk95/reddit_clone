@@ -1,8 +1,10 @@
 package com.project.backend.security;
 
+import com.project.backend.RedditCloneApplication;
 import com.project.backend.email.MailContentBuilder;
 import com.project.backend.email.MailService;
 import com.project.backend.email.NotificationEmail;
+import com.project.backend.exceptions.SpringRedditException;
 import com.project.backend.user.User;
 import com.project.backend.user.UserRepository;
 import com.project.backend.verification.VerificationToken;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.project.backend.utils.Constants.ACTIVATION_EMAIL;
@@ -63,5 +66,19 @@ public class AuthenticationService {
         verificationTokenRepository.save(verificationToken);
 
         return token;
+    }
+
+    // get the token from the db and verify the user token
+    public void verifyAccountToken(String token) {
+        Optional<VerificationToken> verificationToken = verificationTokenRepository.findByToken(token);
+        verificationToken.orElseThrow(() -> new SpringRedditException("Verification token invalid!"));
+        fetchAndEnableUser(verificationToken.get());
+    }
+
+    private void fetchAndEnableUser(VerificationToken verificationToken) {
+        long userId = verificationToken.getUser().getUserId();
+        User user = userRepository.findByUserId(userId).orElseThrow(() -> new SpringRedditException("User Name not found!"));
+        user.setEnabled(true);
+        userRepository.save(user);
     }
 }
