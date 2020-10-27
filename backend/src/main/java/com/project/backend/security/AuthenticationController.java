@@ -1,6 +1,7 @@
 package com.project.backend.security;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @AllArgsConstructor
+@Slf4j
 public class AuthenticationController {
 
     private final AuthenticationService authService;
@@ -23,4 +25,10 @@ public class AuthenticationController {
         authService.verifyAccountToken(token);
         return new ResponseEntity<>("Account verification Successful", HttpStatus.OK);
     }
+
+    @PostMapping("/login")
+    public AuthenticationResponse login(@RequestBody LoginRequest loginRequest) {
+        return authService.login(loginRequest);
+    }
+
 }

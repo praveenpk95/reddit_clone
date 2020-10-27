@@ -1,7 +1,5 @@
 package com.project.backend.security;
 
-import com.project.backend.RedditCloneApplication;
-import com.project.backend.email.MailContentBuilder;
 import com.project.backend.email.MailService;
 import com.project.backend.email.NotificationEmail;
 import com.project.backend.exceptions.SpringRedditException;
@@ -9,11 +7,11 @@ import com.project.backend.user.User;
 import com.project.backend.user.UserRepository;
 import com.project.backend.verification.VerificationToken;
 import com.project.backend.verification.VerificationTokenRepository;
-import javafx.beans.property.adapter.JavaBeanBooleanPropertyBuilder;
 import lombok.AllArgsConstructor;
-import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.MailSender;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +33,10 @@ public class AuthenticationService {
     private final VerificationTokenRepository verificationTokenRepository;
 
     private MailService mailService;
-    private MailContentBuilder mailContentBuilder;
+
+    private final AuthenticationManager authenticationManager;
+
+    private final JwtProvider jwtProvider;
 
     @Transactional
     public void signUp(AuthenticationRequest authenticationRequest) {
@@ -80,5 +81,12 @@ public class AuthenticationService {
         User user = userRepository.findByUserId(userId).orElseThrow(() -> new SpringRedditException("User Name not found!"));
         user.setEnabled(true);
         userRepository.save(user);
+    }
+
+    public AuthenticationResponse login(LoginRequest loginRequest) {
+        Authentication authenticate = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+        String token = jwtProvider.generateToken(authenticate);
+        return new AuthenticationResponse(token, loginRequest.getUsername());
     }
 }
